@@ -1,38 +1,44 @@
 # task-3-week-2-Robot-Image-Classification-Using-Machine-Learning
-Task Overview:
+from keras.models import load_model  # TensorFlow is required for Keras to work
+from PIL import Image, ImageOps  # Install pillow instead of PIL
+import numpy as np
 
-This project focuses on training a machine learning model to classify robot images into two distinct categories:
-	1.	Robot Arm – Robots equipped with industrial robotic arms.
-	2.	Humanoid Robot – Robots designed with a human-like appearance (head, body, limbs).
+# Disable scientific notation for clarity
+np.set_printoptions(suppress=True)
 
-The goal is to enable the model to analyze any new, unseen image and predict the appropriate class based on the features learned during training.
+# Load the model
+model = load_model("keras_model.h5", compile=False)
 
-⸻
+# Load the labels
+class_names = open("labels.txt", "r").readlines()
 
-🛠 Technologies & Tools Used:
-	•	Teachable Machine by Google
-	•	Python programming language
-	•	Keras / TensorFlow libraries
-	•	Google Colab for cloud-based testing
-	•	Pillow library for image processing
+# Create the array of the right shape to feed into the keras model
+# The 'length' or number of images you can put into the array is
+# determined by the first position in the shape tuple, in this case 1
+data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
 
-⸻
+# Replace this with the path to your image
+image = Image.open("test,jpg").convert("RGB")
 
-📥 Project Outputs:
-	•	A trained model (keras_model.h5)
-	•	Class label file (labels.txt)
-	•	Python script for image preprocessing and prediction
-	•	Ready for future extension with more robot categories
-📌 How It Works:
-	1.	A new image is uploaded into the system.
-	2.	The image is processed and passed through the trained model.
-	3.	The model outputs the predicted class along with a confidence score.
+# resizing the image to be at least 224x224 and then cropping from the center
+size = (224, 224)
+image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
 
-⸻
+# turn the image into a numpy array
+image_array = np.asarray(image)
 
-✅ Project Objective:
+# Normalize the image
+normalized_image_array = (image_array.astype(np.float32) / 127.5) - 1
 
-To build an intelligent system that can distinguish between different types of robots automatically. This can be applied to:
-	•	Automated image classification pipelines
-	•	Industrial robotics monitoring systems
-	•	Intelligent search in image databases
+# Load the image into the array
+data[0] = normalized_image_array
+
+# Predicts the model
+prediction = model.predict(data)
+index = np.argmax(prediction)
+class_name = class_names[index]
+confidence_score = prediction[0][index]
+
+# Print prediction and confidence score
+print("Class:", class_name[2:], end="")
+print("Confidence Score:", confidence_score)
